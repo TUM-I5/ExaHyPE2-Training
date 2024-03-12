@@ -1,5 +1,13 @@
 # ExaHyPE 2 Training
 
+## Download the Instructions
+
+The PDF is uploaded from the CI pipeline as an artifact.
+
+Go to the `Actions` tab, click on the latest pipeline run and download the `ExaHyPE2_Training` artifact.
+
+Extract it and open the PDF.
+
 ## Installation
 
 Please install [Docker](https://docs.docker.com/engine/install/), launch Docker and then run
