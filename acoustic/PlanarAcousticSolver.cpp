@@ -1,6 +1,6 @@
 #include "PlanarAcousticSolver.h"
 
-::tarch::logging::Log ::exahype2::training::acoustic::PlanarAcousticSolver::_log("exahype2::training::acoustic::PlanarAcousticSolver");
+::tarch::logging::Log exahype2::training::acoustic::PlanarAcousticSolver::_log("exahype2::training::acoustic::PlanarAcousticSolver");
 
 /*
  * Enables the usage of shortcuts to access variables, e.g., use Q[s.p] instead of Q[0]
