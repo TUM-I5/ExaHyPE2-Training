@@ -114,10 +114,16 @@ docker pull peanoframework/training
 
 Now that this is done, you should have a working installation of Peano, so let's go give it a spin!
 
-After installation, run
+After installation, clone the training repository
 
 \begin{lstlisting}[style = Bash]
-docker run --rm -p 9999:9999 peanoframework/training
+git clone https://github.com/TUM-I5/ExaHyPE2-Training.git
+\end{lstlisting}
+
+Navigate into the cloned repository and run
+
+\begin{lstlisting}[style = Bash]
+docker run -v ${PWD}:/training --rm -p 9999:9999 peanoframework/training
 \end{lstlisting}
 
 You should see
@@ -127,18 +133,6 @@ http://127.0.0.1:9999/lab?token=
 \end{lstlisting}
 
 Click on that link (ctrl+left-click) or enter the link in the address bar of your web browser.
-
-You can also run an interactive Docker container and mount the training repository:
-
-\begin{lstlisting}[style = Bash]
-docker run -it -v ${PWD}:/training --rm -p 9999:9999 peanoframework/training
-\end{lstlisting}
-
-Then you may start the jupyter lab session in the `/training` folder:
-
-\begin{lstlisting}[style = Bash]
-jupyter lab --allow-root --port=9999 --no-browser --ip=0.0.0.0
-\end{lstlisting}
 
 \newpage
 
@@ -557,14 +551,14 @@ my_solver = exahype2.solvers.fv.rusanov.GlobalAdaptiveTimeStep(
   min_volume_h          = min_h,
   max_volume_h          = max_h,
   time_step_relaxation  = 0.1,
-  unknowns              = { "p": 0, "v": 2, "E": 1 },
+  unknowns              = { "p": 1, "v": 2, "E": 1 },
   auxiliary_variables   = 0
 )
 \end{lstlisting}
 
 \begin{enumerate}
     \item
-        First, create and fill a configuration file. Use a Finite-Volumes solver for this, then set the domain size to $120x120$,
+        First, create and fill a configuration file. Use a Finite Volumes solver for this, then set the domain size to $120x120$,
         the offset to $-10, -60$ and the end-time to $10.0$.
         You can choose the mesh refinement of your choice, but we recommend a depth of 5 over the whole domain.
     \item
