@@ -17,8 +17,7 @@ RUN mkdir /opt/spack-environment \
 &&   echo '      target: [x86_64]' \
 &&   echo '' \
 &&   echo '  specs:' \
-&&   echo '  - py-pip' \
-&&   echo '  - py-jupyterlab' \
+&&   echo '  - paraview+ipo+python ^llvm ~clang ~flang ~lldb ~lld libcxx=none ~gold +llvm_dylib' \
 &&   echo '  - exahype2+omp' \
 &&   echo '' \
 &&   echo '  concretizer:' \
@@ -29,6 +28,14 @@ RUN mkdir /opt/spack-environment \
 
 RUN cd /opt/spack-environment && spack env activate . && spack install --fail-fast && spack gc -y
 RUN cd /opt/spack-environment && spack env activate --sh -d . > activate.sh
+
+RUN . /opt/spack-environment/activate.sh && \
+python3 -m pip install --upgrade \
+pip \
+jupyterlab \
+pyvista \
+ipywidgets
+#vtk
 
 FROM peanoframework/base:latest
 LABEL peano-framework.org=http://www.peano-framework.org/
