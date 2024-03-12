@@ -1,0 +1,30 @@
+name: Deploy PDF
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: tumi5/latex
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Build PDF
+        run: |
+          cd instructions
+          make
+      - name: Copy
+        run: |
+          mkdir out
+          cp instructions/_build/main.pdf ./out/ExaHyPE2_Training.pdf
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ExaHyPE2_Training
+          path: out/ExaHyPE2_Training.pdf
