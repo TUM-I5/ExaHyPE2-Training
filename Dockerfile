@@ -17,8 +17,10 @@ RUN mkdir /opt/spack-environment \
 &&   echo '      target: [x86_64]' \
 &&   echo '' \
 &&   echo '  specs:' \
-&&   echo '  - paraview+ipo+python ^llvm ~clang ~flang ~lldb ~lld libcxx=none ~gold +llvm_dylib' \
 &&   echo '  - exahype2+omp' \
+&&   echo '  - py-pip' \
+&&   echo '  - py-jupyterlab' \
+&&   echo '  - paraview+ipo+python ^llvm ~clang ~flang ~lldb ~lld libcxx=none ~gold +llvm_dylib' \
 &&   echo '' \
 &&   echo '  concretizer:' \
 &&   echo '    unify: true' \
@@ -29,23 +31,34 @@ RUN mkdir /opt/spack-environment \
 RUN cd /opt/spack-environment && spack env activate . && spack install --fail-fast && spack gc -y
 RUN cd /opt/spack-environment && spack env activate --sh -d . > activate.sh
 
-RUN . /opt/spack-environment/activate.sh && \
-python3 -m pip install --upgrade \
-pip \
-jupyterlab \
-pyvista \
-ipywidgets
-#vtk
-
 FROM peanoframework/base:latest
 LABEL peano-framework.org=http://www.peano-framework.org/
 
 ENV FORCE_UNSAFE_CONFIGURE=1 \
 DEBIAN_FRONTEND=noninteractive \
 TZ=UTC \
-DISPLAY=host.docker.internal:0.0 \
+DISPLAY=DISPLAY=:99.0 \
+PYVISTA_OFF_SCREEN=true \
+PYVISTA_USE_IPYVTK=true \
+OMP_PLACES="cores" \
+OMP_PROC_BIND="spread" \
 OMPI_ALLOW_RUN_AS_ROOT=1 \
 OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+
+RUN apt-get update -y && apt-get upgrade -y && apt-get install -y --no-install-recommends \
+tini \
+xvfb && \
+apt-get clean -y && \
+apt-get autoremove -y && \
+apt-get autoclean -y && \
+rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m pip install --upgrade \
+pip \
+panel \
+pyvista \
+ipywidgets \
+vtk
 
 COPY --from=builder /opt/spack-environment /opt/spack-environment
 COPY --from=builder /opt/software /opt/software
@@ -56,10 +69,16 @@ COPY --from=builder /opt/views /opt/views
 RUN { \
       echo '#!/bin/sh' \
       && echo '.' /opt/spack-environment/activate.sh \
+      && echo 'which Xvfb' \
+      && echo 'Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &' \
+      && echo 'sleep 3' \
+      && echo 'set +x' \
+      && echo 'jupyter lab --allow-root --port=9999 --no-browser --ip=0.0.0.0' \
       && echo 'exec "$@"'; \
     } > /entrypoint.sh \
 && chmod a+x /entrypoint.sh \
 && ln -s /opt/views/view /opt/view
 
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["/bin/bash"]
+VOLUME ["/training"]
+WORKDIR /training
+ENTRYPOINT ["tini", "-s", "-g", "/entrypoint.sh", "--"]
