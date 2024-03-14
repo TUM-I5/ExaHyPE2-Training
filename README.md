@@ -38,4 +38,4 @@ http://127.0.0.1:9999/lab?token=
 
 Click on that link (ctrl+left-click) or enter the link in the address bar of your web browser.
 
-Then use the navigation bar to open the exercises (e.g., [acoustic](acoustic)).
+Then use the navigation bar to open the exercises (e.g., [acoustic](acoustic)) and follow the instructions.
