@@ -133,6 +133,7 @@ void ::exahype2::training::swe::SWESolver::nonconservativeProduct(
   // Part 1
   //return ::exahype2::RefinementCommand::Keep;
 
+  // Part 2
   return (std::abs(tarch::la::norm2(x) - 0.5) < 0.2 ?
     ::exahype2::RefinementCommand::Refine :
     ::exahype2::RefinementCommand::Keep);
