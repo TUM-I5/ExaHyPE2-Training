@@ -139,7 +139,7 @@ Click on that link (ctrl+left-click) or enter the link in the address bar of you
 \section{Our First Configuration File}
 \label{section_3}
 
-We have Peano 4 and ExaHyPE 2 installed, but how do we use it? For this, let's take a look at our first configuration file, in \textbf{Acoustic/PlanarWaves.py}\\
+We have Peano 4 and ExaHyPE 2 installed, but how do we use it? For this, let's take a look at our first configuration file, in \textbf{acoustic/planar_waves.ipynb}\\
 The configuration files are in \texttt{Python}, so it should surprise no one that they start with the following:\\
 
 \begin{lstlisting}[style = Python]
@@ -152,8 +152,8 @@ With our imports out of the way, we are free to define our problem, for this, le
 my_solver = exahype2.solvers.aderdg.rusanov.GlobalAdaptiveTimeStep(
     name                  = "PlanarAcousticSolver",
     order                 = 5,
-    min_cell_h            = 0.1,
-    max_cell_h            = 0.1,
+    min_cell_h            = cell_h,
+    max_cell_h            = cell_h,
     time_step_relaxation  = 0.9,
     unknowns              = {"p": 1, "v": 2},
     auxiliary_variables   = {}
@@ -181,14 +181,14 @@ so the only term from equation \ref{ExaHyPE2_formulation} that remains is the fl
 With this out of the way, we need to create an environment for the solver to run in, this is a \textbf{ExaHyPE 2} project:\\
 
 \begin{lstlisting}[style = Python]
-my_project = exahype2.Project(
+exahype2_project = exahype2.Project(
     namespace     = ["exahype2", "training", "acoustic"],
     directory     = ".",
     project_name  = "PlanarWaves",
     executable    = "PlanarWaves"
 )
 
-my_project.add_solver(my_solver)
+exahype2_project.add_solver(my_solver)
 \end{lstlisting}
 
 This handles things like the grid generation, traversal, data exchanges and such.
@@ -198,10 +198,10 @@ the size of the domain, how long the simulation should run for and when to plot.
 We can also specify here whether we want to use periodic boundary conditions:\\
 
 \begin{lstlisting}[style = Python]
-my_project.set_global_simulation_parameters(
+exahype2_project.set_global_simulation_parameters(
     dimensions            = 2,
-    size                  = [2.0,  2.0],
-    offset                = [-1.0, -1.0],
+    size                  = domain_size,
+    offset                = domain_offset,
     min_end_time          = 1.414,  # sqrt(2)
     max_end_time          = 1.414,  # sqrt(2)
     first_plot_time_stamp = 0.0,
@@ -213,15 +213,15 @@ my_project.set_global_simulation_parameters(
 Finally, we have some more optimizations for the project, and then we can generate all the glue code we need and compile it:\\
 
 \begin{lstlisting}[style = Python]
-my_project.set_load_balancing(
+exahype2_project.set_load_balancing(
     "toolbox::loadbalancing::strategies::SpreadOutOnceGridStagnates",
     "new ::exahype2::LoadBalancingConfiguration()"
 )
 
-my_project.set_Peano4_installation("../../", peano4.output.CompileMode.Release)
-
-my_project = my_project.generate_Peano4_project()
-my_project.build(make=True, make_clean_first=True)
+exahype2_project.set_Peano4_installation("", peano4.output.CompileMode.Release)
+peano4_project = exahype2_project.generate_Peano4_project()
+peano4_project.generate()
+peano4_project.build(make=True, make_clean_first=False, throw_away_data_after_build=False)
 \end{lstlisting}
 
 Once this is finished compiling, let's run it:\\
@@ -411,7 +411,7 @@ and the bathymetry $b$, which is the height of the ground below the liquid. They
 
 We want to simulate a so-called \textit{dam-break scenario}, that is a scenario where a large mass of fluid spreads rapidly from an
 initial resting position, such as might happen when you jump into a pool, or when you jump into a bathtub, or when you jump into a puddle. \\
-A configuration file has already been created for you at \texttt{swe/dam\_break.py}.
+A configuration file has already been created for you at \texttt{swe/dam\_break.ipynb}.
 Try running it, and then look into the generated implementation file \texttt{SWESolver.cpp}.\\
 
 \begin{enumerate}
@@ -430,7 +430,7 @@ Try running it, and then look into the generated implementation file \texttt{SWE
         Next, let's implement the flux according to \ref{SWE_wo}, in addition to this, zero out the NCP, that is to say set \texttt{BTimesDeltaQ} to $0$
         for all its components, after all we do not need an NCP here, do we?
     \item
-        Once all of this is done, re-compile the project using the command \texttt{make},
+        Once all of this is done, re-compile the project using by running the Jupyterlab cell again,
         then run the executable \texttt{DamBreak} and go do some stretches while it runs.
         Maybe get a glass of water as well. Once you are finished stretching and the code is finished running,
         convert the output and visualize it, does it look like what you'd expect?
@@ -450,7 +450,7 @@ Try running it, and then look into the generated implementation file \texttt{SWE
 
 \vspace{0.2cm}
 
-So I have to admit something. When we described the shallow-water equations to you, I sort of lied.
+So we have to admit something. When we described the shallow-water equations to you, we sort of lied.
 Well not really, it's just that \ref{SWE_wo} is the form of the SWE without bathymetry.\\
 With bathymetry, it looks as follows (note that the gravity term was moved from the flux to the NCP):
 
@@ -459,7 +459,7 @@ With bathymetry, it looks as follows (note that the gravity term was moved from 
     \begin{array}{lr} h \\
         h u_1 \\
         h u_2 \\
-        b 
+        b
         \end{array} \right) +
     \nabla \underbrace{\begin{pmatrix}
         h u_1           & h u_2     \\
@@ -585,7 +585,7 @@ my_solver = exahype2.solvers.fv.rusanov.GlobalAdaptiveTimeStep(
 
     \item
         You are finished with all of the tasks we've prepared so you'll have to think up some more yourself, congratulations!
-        If you'd like to feel free to experiment some more, but before that how about some more stretches?
+        If you'd like to feel free to experiment some more.
 \end{enumerate}
 
 \begin{figure}[!h]

@@ -21,8 +21,14 @@ void ::exahype2::training::swe::SWESolver::initialCondition(
   Q[s.hu + 1] = 0.0; // v_y
 
   // Part 1
+  /*
   Q[s.h] = x[0] < 0.0 ? 1.0 : 2.0; // h
   Q[s.b] = 0.0;
+  */
+
+  // Part 2
+  Q[s.h] = 1.0;
+  Q[s.b] = (tarch::la::norm2(x) < 0.5 ? 0.2 : 0.0);
 }
 
 void ::exahype2::training::swe::SWESolver::boundaryConditions(
@@ -64,17 +70,23 @@ void ::exahype2::training::swe::SWESolver::flux(
   int                                            normal,
   double* __restrict__ F
 ) {
-  constexpr double grav = 9.81;
-  double           ih   = 1.0 / Q[s.h];
+  double ih = 1.0 / Q[s.h];
 
   // Part 1
+  /*
+  constexpr double grav = 9.81;
   F[s.h]      = Q[s.hu + normal];
   F[s.hu + 0] = Q[s.hu + normal] * Q[s.hu + 0] * ih;
   F[s.hu + 1] = Q[s.hu + normal] * Q[s.hu + 1] * ih;
   F[s.b]      = 0.0;
   F[s.hu + normal] += 0.5 * grav * Q[s.h] * Q[s.h];
+  */
 
   // Part 2
+  F[s.h]      = Q[s.hu + normal];
+  F[s.hu + 0] = Q[s.hu + normal] * Q[s.hu + 0] * ih;
+  F[s.hu + 1] = Q[s.hu + normal] * Q[s.hu + 1] * ih;
+  F[s.b]      = 0.0;
 }
 
 void ::exahype2::training::swe::SWESolver::nonconservativeProduct(
@@ -88,12 +100,27 @@ void ::exahype2::training::swe::SWESolver::nonconservativeProduct(
   double* __restrict__ BTimesDeltaQ
 ) {
   // Part 1
+  /*
   BTimesDeltaQ[s.h]      = 0.0;
   BTimesDeltaQ[s.hu + 0] = 0.0;
   BTimesDeltaQ[s.hu + 1] = 0.0;
   BTimesDeltaQ[s.b]      = 0.0;
+  */
 
   // Part 2
+  constexpr double grav = 9.81;
+  BTimesDeltaQ[s.h] = 0.0;
+  switch (normal) {
+  case 0:
+    BTimesDeltaQ[s.hu + 0] = grav * Q[s.h] * (deltaQ[s.h] + deltaQ[s.b]);
+    BTimesDeltaQ[s.hu + 1] = 0.0;
+    break;
+  case 1:
+    BTimesDeltaQ[s.hu + 0] = 0.0;
+    BTimesDeltaQ[s.hu + 1] = grav * Q[s.h] * (deltaQ[s.h] + deltaQ[s.b]);
+    break;
+  }
+  BTimesDeltaQ[s.b] = 0.0;
 }
 
 ::exahype2::RefinementCommand exahype2::training::swe::SWESolver::
@@ -104,5 +131,9 @@ void ::exahype2::training::swe::SWESolver::nonconservativeProduct(
     double                                         t
   ) {
   // Part 1
-  return ::exahype2::RefinementCommand::Keep;
+  //return ::exahype2::RefinementCommand::Keep;
+
+  return (std::abs(tarch::la::norm2(x) - 0.5) < 0.2 ?
+    ::exahype2::RefinementCommand::Refine :
+    ::exahype2::RefinementCommand::Keep);
 }
